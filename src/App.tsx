@@ -1,26 +1,50 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {Suspense, useState} from 'react';
+import './App.scss';
+import {BrowserRouter, Redirect, Route, Switch, useHistory} from "react-router-dom";
+
+import Header from "./components/Header";
+import NotFound from './components/NotFound';
+import Home from "./features/Home";
+import Post from "./features/Post";
+import PostDetail from "./features/PostDetail";
+import Profile from "./features/Profile";
+import Login from "./features/Login";
+import {User} from "./features/Profile/user";
+
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+   const [currentUser, setCurrentUser] = useState<User | null>(null);
+   const doLogin = (user: User) => {
+      setCurrentUser(user)
+
+
+   }
+   const doLogout = () => {
+      setCurrentUser(null)
+   }
+   return (
+      <div className="app-wrapper">
+         <Suspense fallback={<div> Loading.... </div>}>
+            <BrowserRouter>
+               <Header currentUser={currentUser} doLogout={doLogout}/>
+               <Switch>
+                  <Redirect exact from="/" to="/home"/>
+                  <Route path="/home" exact> <Home/></Route>
+                  <Route path="/posts" exact> <Post/></Route>
+                  <Route path="/posts/:id" exact> <PostDetail/></Route>
+                  <Route path="/profile">
+                     {currentUser?.userId && <Profile currentUserId={currentUser.userId} />}
+                     {!currentUser?.userId && <Login doLogin={doLogin}/>}
+                  </Route>
+                  <Route path="/login" exact><Login doLogin={doLogin}/> </Route>
+                  <Route component={NotFound}></Route>
+               </Switch>
+
+            </BrowserRouter>
+         </Suspense>
+      </div>
+   );
 }
 
 export default App;
